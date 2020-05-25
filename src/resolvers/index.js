@@ -46,8 +46,8 @@ const standardizePhone = (phoneNumber) => {
   
 const createUser = (object, args, context, info) => {
   if (isValidPhone(args.phone) || isValidEmail(args.email)) {
+    args.phone = standardizePhone(args.phone)
     if (!getUser(context, args.email, args.phone)) {
-      args.phone = standardizePhone(args.phone)
       return createUserEntry(context, args.email, args.phone, args.password)
     } else {
       throw new Error(`User with email: ${args.email} or phone: ${args.phone} already exists!`)
@@ -100,15 +100,15 @@ const unfollowUser = (object, args, context, info) => {
 }
   
 const getUser = (context, email, phone) => {
-  const emailUser = context.db.get('users')
-    .find({ email: email })
+  const user = context.db.get('users')
+    .find((user) => {
+      const emailMatch = (user.email === email && email)
+      const phoneMatch = (user.phone === phone && phone)
+      return emailMatch || phoneMatch
+    })
     .value()
 
-  const phoneUser = context.db.get('users')
-    .find({ phone: phone })
-    .value()
-
-  return emailUser || phoneUser
+  return user
 }
   
 const getUserById = (context, id) => {
